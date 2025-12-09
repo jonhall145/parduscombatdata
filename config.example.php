@@ -30,8 +30,8 @@ if ($onGCP) {
         }
         
         // Get access token from metadata server
-        $tokenUrl = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
-        $ch = curl_init($tokenUrl);
+        $url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Metadata-Flavor: Google'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);

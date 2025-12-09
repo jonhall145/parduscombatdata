@@ -441,9 +441,9 @@ if ($onGCP) {
     $dbPassword = getSecret('db-password');
     $connectionName = getSecret('db-connection-name');
     
-    // Fallback to environment variables if secrets fail
+    // Fallback to environment variables if Secret Manager fails
     if (!$dbUsername || !$dbPassword || !$connectionName) {
-        error_log("Secret Manager retrieval failed, using environment variables");
+        error_log("Secret Manager retrieval failed, falling back to environment variables");
         $dbUsername = getenv('DB_USERNAME') ?: 'pardus_app_user';
         $dbPassword = getenv('DB_PASSWORD');
         $connectionName = getenv('CLOUD_SQL_CONNECTION_NAME');
