@@ -12,6 +12,18 @@ A web application for analyzing combat data from the Pardus online game. This to
 
 ## Setup
 
+### Deployment Options
+
+**🚀 Google Cloud Platform (Recommended - FREE)**
+- **Free Tier**: Host for free on Google Cloud's free tier with your custom domain
+- **📚 Documentation Index**: See [HOSTING_INDEX.md](HOSTING_INDEX.md) for complete guide navigation
+- **⚡ Quick Start**: See [QUICKSTART_GCP.md](QUICKSTART_GCP.md) for rapid deployment (15-30 min)
+- **📖 Full Guide**: See [HOSTING_GOOGLE_CLOUD.md](HOSTING_GOOGLE_CLOUD.md) for comprehensive instructions (1-2 hours)
+- **❓ FAQ**: See [FAQ_GCP_HOSTING.md](FAQ_GCP_HOSTING.md) for common questions and troubleshooting
+- Includes automatic scaling, SSL certificates, managed database, and monitoring
+
+**Self-Hosted / Traditional Setup**
+
 ### Prerequisites
 
 - PHP 7.0 or higher with mysqli extension
@@ -35,7 +47,10 @@ A web application for analyzing combat data from the Pardus online game. This to
    define('DB_NAME', 'your_database_name');
    ```
 
-4. Create the necessary database tables (SQL schema not included in this repository)
+4. Create the necessary database tables using the schema in `database_schema.sql`:
+   ```bash
+   mysql -u your_username -p your_database_name < database_schema.sql
+   ```
 
 5. For HTTPS deployments, ensure your server is configured with SSL/TLS certificates
 
