@@ -1,14 +1,12 @@
 <?php
+ require_once 'config.php';
+ 
  //tactics study
  echo "<h2>Tactics study</h2>";
  echo "<h3>Attacker stats</h3>";
  echo "<p>Early results suggest the chance a hit is a crit is as simple as 1/5 x tactics, with one caveat - it's very hard (almost impossible!) to crit with mining lasers.  Therefore, data shows this pattern against almost all enemies except Euryales and Elings where mining lasers are most often required.  The data so far is shown below.  Tactics is recorded at the end of the combat, and rounded down.</p>";
  echo "<p>It seems likely that defender stats are used in some way in the calculation.  This will be easier to evaluate as I collect more data.</p>";
- $servername = "localhost";
- $username = "asdwtbdf_combatstats";
- $password = "*.Xswx[QW;v?";
- $dbname = "asdwtbdf_parduscombatdata";
- $conn = new mysqli($servername, $username, $password, $dbname);
+ $conn = getDatabaseConnection();
  $tacticsquery = "SELECT FLOOR(`tactics`), sum(`hits`), SUM(`crits`), `defender` FROM `combat_data` WHERE 1 GROUP BY FLOOR(`tactics`), `defender`";
  $tacticsresults = $conn->query($tacticsquery);
  $npcsquery = "SELECT DISTINCT `defender` FROM `combat_data` WHERE 1 ORDER BY `defender`";
@@ -79,7 +77,7 @@ function fetch_results() {
      {
         foreach ($content as $value) {
             //echo "<script>alert(\"" . $value . "\");</script>";
-        echo "<option value =\"" . $value . "\">" . $value . "</option>";
+        echo "<option value =\"" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "\">" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</option>";
         }
      }
     ?></select>
@@ -100,7 +98,7 @@ function fetch_results() {
  {
      echo "<tr>";
     foreach ($content as $key=>$value) {
-        echo "<td>" . $value . "</td>";
+        echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
         }
     echo "</tr>";
  }
@@ -118,7 +116,7 @@ function fetch_results() {
  {
      echo "<tr>";
     foreach ($content as $key=>$value) {
-        echo "<td>" . $value . "</td>";
+        echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
         }
     echo "</tr>";
  }
@@ -133,7 +131,7 @@ function fetch_results() {
  {
      echo "<tr>";
     foreach ($content as $key=>$value) {
-        echo "<td>" . $value . "</td>";
+        echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
         }
     echo "</tr>";
  }

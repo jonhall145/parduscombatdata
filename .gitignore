@@ -5,6 +5,9 @@ error_log (1)
 # Large data files
 *.csv
 
+# Configuration files with sensitive data
+config.php
+
 # IDE and editor files
 .vscode/
 .idea/

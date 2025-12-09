@@ -1,26 +1,23 @@
 <?php
+require_once 'config.php';
 
-    $tac_min = $_POST["tac_min"];
-    $tac_max = $_POST["tac_max"];
-    $ha_min = $_POST["ha_min"];
-    $ha_max = $_POST["ha_max"];
-    $man_min = $_POST["man_min"];
-    $man_max = $_POST["man_max"];
-    $weap_min = $_POST["weap_min"];
-    $weap_max = $_POST["weap_max"];
-    $eng_min = $_POST["eng_min"];
-    $eng_max = $_POST["eng_max"];
-    $opponent = $_POST["opponent"];
-    $skill = $_POST["focusskill"];
-    $y_axis = $_POST["y_axis"];
+    $tac_min = isset($_POST["tac_min"]) ? (float)$_POST["tac_min"] : 0;
+    $tac_max = isset($_POST["tac_max"]) ? (float)$_POST["tac_max"] : 200;
+    $ha_min = isset($_POST["ha_min"]) ? (float)$_POST["ha_min"] : 0;
+    $ha_max = isset($_POST["ha_max"]) ? (float)$_POST["ha_max"] : 200;
+    $man_min = isset($_POST["man_min"]) ? (float)$_POST["man_min"] : 0;
+    $man_max = isset($_POST["man_max"]) ? (float)$_POST["man_max"] : 200;
+    $weap_min = isset($_POST["weap_min"]) ? (float)$_POST["weap_min"] : 0;
+    $weap_max = isset($_POST["weap_max"]) ? (float)$_POST["weap_max"] : 200;
+    $eng_min = isset($_POST["eng_min"]) ? (float)$_POST["eng_min"] : 0;
+    $eng_max = isset($_POST["eng_max"]) ? (float)$_POST["eng_max"] : 200;
+    $opponent = isset($_POST["opponent"]) ? $_POST["opponent"] : "All opponents";
+    $skill = isset($_POST["focusskill"]) ? $_POST["focusskill"] : "tactics";
+    $y_axis = isset($_POST["y_axis"]) ? $_POST["y_axis"] : "Attacker hit rate";
     $validskills = array("0", "tactics","hit_accuracy", "maneuver", "weaponry", "engineering");
     $validopponents = array("0","All opponents");
     
-    $servername = "localhost";
-    $username = "asdwtbdf_combatstats";
-    $password = "*.Xswx[QW;v?";
-    $dbname = "asdwtbdf_parduscombatdata";
-    $conn = new mysqli($servername, $username, $password, $dbname);
+    $conn = getDatabaseConnection();
     $npcsquery = "SELECT DISTINCT `defender` FROM `combat_data` WHERE 1 ORDER BY `defender`";
     $npcresults = $conn->query($npcsquery);
     $npcresultscopy = $npcresults;
@@ -37,6 +34,11 @@
     }
 
     
+    // Validate skill parameter to prevent SQL injection
+    if (!in_array($skill, $validskills, true)) {
+        die("Invalid skill parameter");
+    }
+    
     if (array_search($opponent, $validopponents,TRUE) && array_search($skill, $validskills, TRUE) && is_numeric($tac_min) && is_numeric($tac_max) && is_numeric($ha_min) && is_numeric($ha_max) && is_numeric($man_min) && is_numeric($man_max) && is_numeric($weap_min) && is_numeric($weap_max) && is_numeric($eng_min) && is_numeric($eng_max))
     { //numbers are numeric, Opponent is acceptable, Skill is acceptable
         if ($opponent == "All opponents") {
@@ -46,7 +48,7 @@
             }
         
 
-        
+        // Use validated skill parameter - safe because we checked it's in the whitelist
         $sqlcustomquery = $conn->prepare("
         SELECT FLOOR(`" . $skill . "`), SUM(`shots`), SUM(`hits`),SUM(`crits`),SUM(`d_shots`),SUM(`d_hits`),SUM(`d_crits`),`defender`
         FROM `combat_data`
@@ -63,12 +65,12 @@
         $sqlcustomquery->execute();
         $customresult = $sqlcustomquery->get_result();
         echo "<div id=\"htmlContent\">";
-        echo "<table><tr><th></th><th colspan=\"3\">Attacker stats</th><th colspan=\"3\">Defender stats</th></tr><tr><th>". ucfirst($skill) . "</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Opponent</th></tr>";
+        echo "<table><tr><th></th><th colspan=\"3\">Attacker stats</th><th colspan=\"3\">Defender stats</th></tr><tr><th>". htmlspecialchars(ucfirst($skill), ENT_QUOTES, 'UTF-8') . "</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Opponent</th></tr>";
         while($content = $customresult->fetch_assoc()) {
             if(array_search($content["defender"],$npclist,TRUE)) {
             echo "<tr>";
             foreach ($content as $key=>$value) {
-                echo "<td>" . $value . "</td>";
+                echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
             }
             echo "</tr>";
             }
@@ -121,7 +123,7 @@
             //echo "entering else <br>";
             
             $chartscript .= "
-                chartdata.addColumn('number', '" . $opponent ."' );";
+                chartdata.addColumn('number', '" . addslashes($opponent) ."' );";
             $chartscript .= "
                 chartdata.addColumn({id:'lb', type:'number', role:'interval'});
                 chartdata.addColumn({id:'ub', type:'number', role:'interval'});";
@@ -164,12 +166,12 @@
                 intervals: { style: 'area' },
                     hAxis: {
                         format: 'decimal',
-                        title: '".$skill."',
+                        title: '".addslashes($skill)."',
                         gridlines: {interval: 1}
                     },
                     vAxis: {
                         format: 'percent',
-                        title: '".$y_axis."',
+                        title: '".addslashes($y_axis)."',
                         minValue: 0
                         
                     },

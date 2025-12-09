@@ -463,14 +463,22 @@ function loadShipInfo(combatStats, skillsToSend) {
         url: shipLink,
         onload: function(response) {
             var htmlFragment = parseXHTTPResponseText(response.responseText);
-            for (var i = 0; i < 5 ; i++) {
-                try {
-                    shipInfo.evasion = parseFloat(response.responseText.match(/(?<=Evasion Bonus )[0-9,.]*(?=%)/gm))
-                    shipInfo.ECM = response.responseText.match(/ECM Jammer/gm)[0];
+            try {
+                shipInfo.evasion = parseFloat(response.responseText.match(/(?<=Evasion Bonus )[0-9,.]*(?=%)/gm))
+            } catch (error) {}
+            
+            try {
+                // Check for Strong ECM first, then regular ECM
+                if (response.responseText.match(/Strong ECM Jammer/gm)) {
                     shipInfo.ECM = response.responseText.match(/Strong ECM Jammer/gm)[0];
-                    shipInfo.ECCM = response.responseText.match(/ECCM Jammer/gm)[0];
-                } catch (error) {}
-            }
+                } else if (response.responseText.match(/ECM Jammer/gm)) {
+                    shipInfo.ECM = response.responseText.match(/ECM Jammer/gm)[0];
+                }
+            } catch (error) {}
+            
+            try {
+                shipInfo.ECCM = response.responseText.match(/ECCM Jammer/gm)[0];
+            } catch (error) {}
 
             submitToServer(combatStats, skillsToSend, shipInfo);
 

@@ -9,7 +9,14 @@
     $remember_password = strtotime('+30 days'); // 30 days
 
     if (isset($_POST['password']) && $_POST['password'] == $password) {
-        setcookie("password", $password, $remember_password);
+        // Set secure cookie with HttpOnly and SameSite flags
+        setcookie("password", $password, [
+            'expires' => $remember_password,
+            'path' => '/',
+            'secure' => true,  // Only send over HTTPS
+            'httponly' => true,  // Not accessible via JavaScript
+            'samesite' => 'Strict'  // CSRF protection
+        ]);
         header('Location: ' . $redirect_after_login);
         exit;
     }
@@ -23,7 +30,8 @@
     <div style="text-align:center;margin-top:50px;">
         You must enter the password to view this content.
         <form method="POST">
-            <input type="text" name="password">
+            <input type="password" name="password" required>
+            <input type="submit" value="Login">
         </form>
     </div>
 </body>
