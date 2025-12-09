@@ -16,13 +16,13 @@ gcloud auth login
 gcloud projects create pardus-combat-data
 gcloud config set project pardus-combat-data
 gcloud services enable appengine.googleapis.com sqladmin.googleapis.com
-gcloud app create --region=us-central1
+gcloud app create --region=europe-west2
 
 # Create Cloud SQL instance
 gcloud sql instances create pardus-combat-db \
   --database-version=MYSQL_8_0 \
   --tier=db-f1-micro \
-  --region=us-central1 \
+  --region=europe-west2 \
   --root-password=YOUR_PASSWORD \
   --backup
 

@@ -10,7 +10,7 @@ Common questions and answers about hosting Pardus Combat Data on Google Cloud Pl
 - **App Engine F1 instance**: 28 instance hours/day (enough for 1 instance 24/7) - FREE
 - **Cloud SQL f1-micro**: First instance - FREE
 - **Cloud SQL Storage**: Up to 10 GB - FREE
-- **Data egress**: 1 GB/day (Americas only) - FREE
+- **Data egress**: 1 GB/day (worldwide) - FREE
 - **SSL certificates**: Unlimited - FREE
 
 However, you will be charged if you:
@@ -103,7 +103,7 @@ curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/clou
 chmod +x cloud-sql-proxy
 
 # Start proxy
-./cloud-sql-proxy --port 3306 pardus-combat-data:us-central1:pardus-combat-db
+./cloud-sql-proxy --port 3306 pardus-combat-data:europe-west2:pardus-combat-db
 
 # Connect via MySQL client
 mysql -h 127.0.0.1 -u pardus_app_user -p pardus_combat_data

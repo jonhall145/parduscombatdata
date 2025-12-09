@@ -137,13 +137,13 @@ gcloud services enable \
 ```bash
 # Initialize App Engine in your preferred region
 # Choose a region close to your users
-# us-central (Iowa) is part of the free tier
-gcloud app create --region=us-central
+# europe-west2 (London, UK) is part of the free tier
+gcloud app create --region=europe-west2
 
-# Available free tier regions:
-# - us-west2 (Los Angeles)
-# - us-central1 (Iowa)
-# - us-east1 (South Carolina)
+# Available free tier regions in EU:
+# - europe-west2 (London, UK)
+# - europe-west3 (Frankfurt, Germany)
+# - europe-west1 (Belgium)
 ```
 
 ### Step 4: Create Cloud SQL Instance
@@ -153,7 +153,7 @@ gcloud app create --region=us-central
 gcloud sql instances create pardus-combat-db \
   --database-version=MYSQL_8_0 \
   --tier=db-f1-micro \
-  --region=us-central1 \
+  --region=europe-west2 \
   --root-password=YOUR_SECURE_ROOT_PASSWORD \
   --backup-start-time=03:00 \
   --backup
@@ -512,7 +512,7 @@ Google Cloud Platform offers a "Always Free" tier:
 
 **App Engine Standard (F1 instance)**
 - 28 instance hours per day (enough for 1 instance running 24/7)
-- 1 GB outbound data (Americas only)
+- 1 GB outbound data per day (worldwide, including Europe)
 - 5 GB Cloud Storage
 
 **Cloud SQL (db-f1-micro)**

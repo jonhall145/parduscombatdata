@@ -20,7 +20,7 @@ Use this checklist to track your deployment progress. Check off items as you com
   - [ ] Cloud SQL Admin API
   - [ ] Cloud SQL API
   - [ ] DNS API
-- [ ] App Engine initialized in us-central1 region
+- [ ] App Engine initialized in europe-west2 region (or europe-west1/europe-west3)
 
 ## Database Setup
 

@@ -34,7 +34,7 @@ gcloud config set project pardus-combat-data
 gcloud services enable appengine.googleapis.com sqladmin.googleapis.com sql-component.googleapis.com dns.googleapis.com
 
 # Initialize App Engine
-gcloud app create --region=us-central1
+gcloud app create --region=europe-west2
 ```
 
 ## 3. Set Up Cloud SQL
@@ -44,7 +44,7 @@ gcloud app create --region=us-central1
 gcloud sql instances create pardus-combat-db \
   --database-version=MYSQL_8_0 \
   --tier=db-f1-micro \
-  --region=us-central1 \
+  --region=europe-west2 \
   --root-password=REPLACE_WITH_SECURE_PASSWORD \
   --backup
 
@@ -124,7 +124,7 @@ Edit `app.yaml` and replace `YOUR_CONNECTION_NAME` with the connection name from
 
 ```yaml
 beta_settings:
-  cloud_sql_instances: "pardus-combat-data:us-central1:pardus-combat-db"
+  cloud_sql_instances: "pardus-combat-data:europe-west2:pardus-combat-db"
 ```
 
 ### Create config.php
@@ -137,7 +137,7 @@ Edit `config.php` and update:
 
 ```php
 // In the GCP section:
-$connectionName = 'pardus-combat-data:us-central1:pardus-combat-db';
+$connectionName = 'pardus-combat-data:europe-west2:pardus-combat-db';
 define('DB_PASSWORD', 'YOUR_SECURE_APP_PASSWORD');
 ```
 
@@ -244,7 +244,7 @@ gcloud sql backups create --instance=pardus-combat-db
 Free tier limits (per day):
 - App Engine F1: 28 instance hours (1 instance 24/7)
 - Cloud SQL f1-micro: First instance free
-- Data egress: 1 GB/day (Americas)
+- Data egress: 1 GB/day (worldwide)
 
 Check usage:
 - Console: https://console.cloud.google.com/billing

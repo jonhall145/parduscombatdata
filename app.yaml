@@ -20,7 +20,7 @@ env_variables:
 # Database connection via Unix socket
 # Replace YOUR_CONNECTION_NAME with actual value from:
 # gcloud sql instances describe pardus-combat-db --format="value(connectionName)"
-# Format: project:region:instance (e.g., pardus-combat-data:us-central1:pardus-combat-db)
+# Format: project:region:instance (e.g., pardus-combat-data:europe-west2:pardus-combat-db)
 beta_settings:
   cloud_sql_instances: "YOUR_CONNECTION_NAME"
 
