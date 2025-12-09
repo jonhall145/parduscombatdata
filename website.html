@@ -1,0 +1,42 @@
+<html>
+<head><meta charset="us-ascii">
+	<title></title>
+</head>
+<body>
+<h1>Asd&#39;s combat analysis</h1>
+
+<p>An infamous player was shot down in 3 rounds and the log showed 11 out of 12 hits against him were critical. What are the chances?</p>
+
+<p>This site was born because we couldn&#39;t decide whether critical hit rates were dependant on the defending player&#39;s skills. The long term vision is to improve general understanding of combat related formulae by building a database of combat results alongside stats</p>
+
+<p>If you would like to contribute, please install <a href="skillstat.user.js">this script</a>. To use it, just tap &quot;y&quot; twice on the combat result screen after each round of fighting, or press the button that pops up. Health warning: I will be able to see all of your skills!</p>
+
+<p>Contact Asdwolf (Orion) or Ranker Five (Artemis) if you&#39;d like to discuss it.</p>
+
+<p>Select your query parameters below</p>
+
+<form action="/query_handler.php">
+    <table>
+        <tr><th>Skill</th><th>Min</th><th></th><th>Max</th></tr>
+        <tr><td><label for="tac_min">Tactics</label></td><td><input type="number" name="tac_min" style="width: 5em;"></td><td></td>
+        <td><input type="number" name="tac_max" style="width: 5em;"></td></tr>
+        <tr><td><label for="ha_min">Hit accuracy</label></td><td><input type="number" name="ha_min" style="width: 5em;"></td><td></td>
+        <td><input type="number" name="ha_max" style="width: 5em;"></td></tr>
+        <tr><td><label for="man_min">Maneuver</label></td><td><input type="number" name="man_min" style="width: 5em;"></td><td></td>
+        <td><input type="number" name="man_max" style="width: 5em;"></td></tr>
+        <tr><td><label for="weap_min">Weaponry</label></td><td><input type="number" name="weap_min" style="width: 5em;"></td><td></td>
+        <td><input type="number" name="weap_max" style="width: 5em;"></td></tr>
+        <tr><td><label for="eng_min">Engineering</label></td><td><input type="number" name="eng_min" style="width: 5em;"></td><td></td>
+        <td><input type="number" name="eng_max" style="width: 5em;"></td></tr>
+    </table><br><input type="button" onclick=fetch_results() value="Sorry, work in progress" />
+</form>
+
+<script>
+function fetch_results() {
+  alert("Work in progress");
+}
+</script>
+
+<div id = "query response"></div>
+</body>
+</html>

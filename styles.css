@@ -1,0 +1,33 @@
+body {
+  background-color: #010911;
+  color: #b0b0b0;
+  font-family: verdana;
+  font-size: 12px;
+  
+}
+
+table {
+  border-collapse: collapse;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+tr:hover {background-color: rgb(3,39,73);}
+
+
+th, td {
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+    font-size: 12px;
+}
+
+td {
+    font-size: 11px;
+}
+
+a {
+    color: #c9cbe4;
+}

@@ -1,0 +1,30 @@
+<html>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js" id="scriptContent"></script>
+<script>
+
+google.charts.load('current', {packages: ['corechart', 'line']}); </script>
+<script>
+function drawChart() {
+
+    var chartdata = new google.visualization.DataTable();
+    chartdata.addColumn('number', 'x');
+    chartdata.addColumn('number', 'Euryale' );
+    chartdata.addRows([[88, 0.087],[89, 0.061]]);
+    var options = {
+        hAxis: {
+            title: 'hit_accuracy'
+        },
+        vAxis: {
+            title: 'Attacker hit rate'
+        },
+
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+    chart.draw(chartdata, options);
+}
+google.charts.setOnLoadCallback(drawChart)
+</script>
+<body>
+<div id="chart_div"></div>
+</body>
+</html>
