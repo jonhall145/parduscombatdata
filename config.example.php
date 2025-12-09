@@ -24,14 +24,22 @@ if ($onGCP) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Metadata-Flavor: Google'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         curl_close($ch);
         
-        if (!$response) {
-            error_log("Failed to get access token from metadata server");
+        if ($response === false || !empty($curlError)) {
+            error_log("Failed to get access token from metadata server: " . $curlError);
             return null;
         }
         
-        $token = json_decode($response, true)['access_token'];
+        // Parse JSON and validate structure
+        $tokenData = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($tokenData['access_token'])) {
+            error_log("Failed to parse access token response: " . json_last_error_msg());
+            return null;
+        }
+        
+        $token = $tokenData['access_token'];
         
         // Access the secret
         $secretUrl = "https://secretmanager.googleapis.com/v1/projects/{$projectId}/secrets/{$secretName}/versions/latest:access";
@@ -43,13 +51,23 @@ if ($onGCP) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+        
+        if ($response === false || !empty($curlError)) {
+            error_log("Failed to retrieve secret {$secretName}: cURL error: " . $curlError);
+            return null;
+        }
         
         if ($httpCode === 200) {
             $data = json_decode($response, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !isset($data['payload']['data'])) {
+                error_log("Failed to parse secret {$secretName} response: " . json_last_error_msg());
+                return null;
+            }
             return base64_decode($data['payload']['data']);
         } else {
-            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode}");
+            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode} - {$response}");
             return null;
         }
     }
