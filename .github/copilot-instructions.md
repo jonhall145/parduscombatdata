@@ -132,4 +132,4 @@ Note: Primary maintainers are most easily reached through the Pardus game or by 
 
 ---
 
-*Last updated: December 2025*
+*Last updated: December 2024*
