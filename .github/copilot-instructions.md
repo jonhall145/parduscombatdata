@@ -55,7 +55,10 @@ The system allows players to contribute combat data by installing a userscript t
 
 1. **Never commit new plaintext credentials** to the repository
 2. **Avoid exposing credentials** in error messages or logs
-3. **Recommend environment variables** for credential management when refactoring
+3. **Recommend environment variables** for credential management when refactoring:
+   - Use `$_ENV` or `getenv()` in PHP
+   - Store credentials in a `.env` file (add to `.gitignore`)
+   - Consider using a `config.php` file outside the web root
 4. **Sanitize all user inputs** - this is a web application accepting data from userscripts
 5. **Validate data types** before database operations (e.g., casting to float/int)
 6. **Use prepared statements** or proper escaping for all database queries
@@ -121,8 +124,11 @@ The system allows players to contribute combat data by installing a userscript t
 ## Contact
 
 For questions about this project, contact:
-- Asdwolf (Orion server)
-- Ranker Five (Artemis server)
+- **Asdwolf** (Orion server in-game)
+- **Ranker Five** (Artemis server in-game)
+- **Repository owner**: [@jonhall145](https://github.com/jonhall145)
+
+Note: Primary maintainers are most easily reached through the Pardus game or by opening a GitHub issue.
 
 ---
 
