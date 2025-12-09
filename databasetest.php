@@ -13,7 +13,7 @@
 
 $servername = "localhost";
 $username = "asdwtbdf_guest2";
-$password = "PEQiw65BD5qB7E9";
+$password = "redacted PW";
 $dbname = "asdwtbdf_pardusmonsterdata";
 
 // Create connection
@@ -81,4 +81,5 @@ $conn->close();
 ?>
      
  </body>
+
 </html>
