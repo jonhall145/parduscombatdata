@@ -16,7 +16,18 @@ if ($onGCP) {
      * @return string|null The secret value or null on failure
      */
     function getSecret($secretName) {
+        // Validate inputs
         $projectId = getenv('GOOGLE_CLOUD_PROJECT');
+        if (empty($projectId)) {
+            error_log("GOOGLE_CLOUD_PROJECT environment variable is not set");
+            return null;
+        }
+        
+        // Validate secret name to prevent injection attacks
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $secretName)) {
+            error_log("Invalid secret name format: {$secretName}");
+            return null;
+        }
         
         // Get access token from metadata server
         $tokenUrl = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
@@ -67,7 +78,8 @@ if ($onGCP) {
             }
             return base64_decode($data['payload']['data']);
         } else {
-            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode} - {$response}");
+            // Don't log full response body as it may contain sensitive info
+            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode}");
             return null;
         }
     }

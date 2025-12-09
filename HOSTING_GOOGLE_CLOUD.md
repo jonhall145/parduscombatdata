@@ -243,8 +243,9 @@ For security best practices, store database credentials in Google Secret Manager
 
 ```bash
 # Create secrets for database credentials
+# Use the actual password you created for pardus_app_user in Step 4
 echo -n "pardus_app_user" | gcloud secrets create db-username --data-file=-
-echo -n "YOUR_SECURE_APP_PASSWORD" | gcloud secrets create db-password --data-file=-
+echo -n "YOUR_SECURE_APP_PASSWORD_FROM_STEP4" | gcloud secrets create db-password --data-file=-
 echo -n "pardus-combat-data:europe-west2:pardus-combat-db" | gcloud secrets create db-connection-name --data-file=-
 
 # Get your App Engine service account email
@@ -367,7 +368,19 @@ if ($onGCP) {
     // Using Google Cloud Secret Manager PHP client would be ideal,
     // but for App Engine Standard PHP, we use the REST API
     function getSecret($secretName) {
+        // Validate inputs
         $projectId = getenv('GOOGLE_CLOUD_PROJECT');
+        if (empty($projectId)) {
+            error_log("GOOGLE_CLOUD_PROJECT environment variable is not set");
+            return null;
+        }
+        
+        // Validate secret name to prevent injection attacks
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $secretName)) {
+            error_log("Invalid secret name format: {$secretName}");
+            return null;
+        }
+        
         $url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
         
         $ch = curl_init($url);
@@ -417,7 +430,8 @@ if ($onGCP) {
             }
             return base64_decode($data['payload']['data']);
         } else {
-            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode} - {$response}");
+            // Don't log full response body as it may contain sensitive info
+            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode}");
             return null;
         }
     }
