@@ -105,10 +105,11 @@ beta_settings:
 ```php
 // Created from config.example.php
 // Detects GCP vs local environment
-// Configures database connection accordingly
+// Retrieves credentials from Secret Manager on GCP
+// Uses local config for development
 ```
-**Purpose:** Environment-aware database configuration
-**Action:** Create from `config.example.php` and add your credentials
+**Purpose:** Environment-aware database configuration with Secret Manager integration
+**Action:** Create from `config.example.php` - credentials are stored in Secret Manager (GCP) or config file (local)
 
 ---
 
@@ -244,6 +245,7 @@ gcloud app domain-mappings describe asdwolf.com
 |---------|-------------|
 | **App Engine** | Serverless PHP hosting platform |
 | **Cloud SQL** | Managed MySQL database service |
+| **Secret Manager** | Secure credential storage with encryption and audit logging |
 | **F1 Instance** | Free tier instance class |
 | **f1-micro** | Free tier database instance |
 | **Unix Socket** | Secure connection between App Engine and Cloud SQL |
@@ -265,7 +267,7 @@ gcloud app domain-mappings describe asdwolf.com
 
 ### During Deployment
 
-✅ **Save Credentials**: Store all passwords and connection names securely.
+✅ **Use Secret Manager**: Store all credentials in Secret Manager (included in deployment guide).
 
 ✅ **Set Billing Alerts**: Configure alerts at $5 to catch any unexpected charges.
 
