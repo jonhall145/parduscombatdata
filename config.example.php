@@ -120,6 +120,9 @@ if ($onGCP) {
     define('DB_NAME', 'your_database_name');
 }
 
+// CSV dump authentication password
+define('CSV_DUMP_PASSWORD', 'your_csv_dump_password');
+
 // Function to create database connection
 function getDatabaseConnection() {
     global $onGCP;
