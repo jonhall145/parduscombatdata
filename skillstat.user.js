@@ -29,6 +29,12 @@ var serverURL = "https://asdwolf.com/combat_data_handler.php";
 var combatToSubmit = [];
 var cr_interpreted = [];
 
+// Compile regex patterns once for better performance
+var evasionRegex = /(?<=Evasion Bonus )[0-9,.]*(?=%)/gm;
+var strongECMRegex = /Strong ECM Jammer/gm;
+var ecmRegex = /ECM Jammer/gm;
+var eccmRegex = /ECCM Jammer/gm;
+
 function parseXHTTPResponseText(data) {
     //Turns text into HTML
     var httpRT = data.replace(/^.*\>(?=<body\b)/, '');
@@ -464,13 +470,16 @@ function loadShipInfo(combatStats, skillsToSend) {
         onload: function(response) {
             var htmlFragment = parseXHTTPResponseText(response.responseText);
             try {
-                shipInfo.evasion = parseFloat(response.responseText.match(/(?<=Evasion Bonus )[0-9,.]*(?=%)/gm))
+                var evasionMatch = response.responseText.match(evasionRegex);
+                if (evasionMatch) {
+                    shipInfo.evasion = parseFloat(evasionMatch);
+                }
             } catch (error) {}
             
             try {
                 // Check for Strong ECM first, then regular ECM (cache match results)
-                var strongECMMatch = response.responseText.match(/Strong ECM Jammer/gm);
-                var ecmMatch = response.responseText.match(/ECM Jammer/gm);
+                var strongECMMatch = response.responseText.match(strongECMRegex);
+                var ecmMatch = response.responseText.match(ecmRegex);
                 if (strongECMMatch) {
                     shipInfo.ECM = strongECMMatch[0];
                 } else if (ecmMatch) {
@@ -479,7 +488,7 @@ function loadShipInfo(combatStats, skillsToSend) {
             } catch (error) {}
             
             try {
-                var eccmMatch = response.responseText.match(/ECCM Jammer/gm);
+                var eccmMatch = response.responseText.match(eccmRegex);
                 if (eccmMatch) {
                     shipInfo.ECCM = eccmMatch[0];
                 }
