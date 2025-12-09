@@ -1,0 +1,13 @@
+# Log files
+error_log
+error_log (1)
+
+# Large data files
+*.csv
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
