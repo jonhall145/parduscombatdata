@@ -13,18 +13,15 @@
         exit;
     }
 
- $servername = "localhost";
- $username = "asdwtbdf_combatstats";
- $password = "*.Xswx[QW;v?";
- $dbname = "asdwtbdf_parduscombatdata";
- $conn = new mysqli($servername, $username, $password, $dbname);
+ require_once 'config.php';
+ $conn = getDatabaseConnection();
  $export = "SELECT `tactics`, `hit_accuracy`,`maneuver`,`weaponry`,`engineering`,`evasion`,`ECM`,`ECCM`,`shots`,`jams`, `hits`, `crits`, `shotsm`,`hitsm`,`critsm`, `ship`,`defender`, `d_shots`, `d_jams`, `d_hits`, `d_crits`,`d_shotsm`,`d_hitsm`,`d_critsm`  FROM `combat_data` WHERE 1";
  $exportresults = $conn->query($export);
  
  while($content = $exportresults->fetch_row()) {
     echo "<tr>";
         foreach ($content as $key=>$value) {
-            echo "<td>" . $value . "</td>";
+            echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
         }
         echo "</tr>";
  }
