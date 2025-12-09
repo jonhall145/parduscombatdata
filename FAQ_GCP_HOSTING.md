@@ -502,20 +502,44 @@ gcloud app deploy
 
 ### Q: Should I use Secret Manager for credentials?
 
-**A:** For production, yes (more secure). For this project, `config.php` with proper `.gitignore` is acceptable.
+**A:** Yes! The deployment guide now includes Secret Manager as the recommended approach (not optional).
 
-To use Secret Manager:
+**Benefits:**
+- ✅ Credentials never stored in code
+- ✅ Automatic encryption at rest and in transit
+- ✅ Audit logging of all secret access
+- ✅ Easy credential rotation without redeployment
+- ✅ IAM-based access control
+- ✅ Versioned secrets with rollback capability
+
+**Already configured in the deployment guide:**
+The main deployment instructions (HOSTING_GOOGLE_CLOUD.md) now include Secret Manager setup in Step 6, and `config.example.php` includes the Secret Manager integration code.
+
+**To manually set up Secret Manager:**
 ```bash
-# Store password
-echo -n "password" | gcloud secrets create db-password --data-file=-
+# Create secrets
+echo -n "pardus_app_user" | gcloud secrets create db-username --data-file=-
+echo -n "YOUR_PASSWORD" | gcloud secrets create db-password --data-file=-
+echo -n "project:region:instance" | gcloud secrets create db-connection-name --data-file=-
 
-# Grant access to App Engine
+# Grant App Engine access
+PROJECT_ID=$(gcloud config get-value project)
+SERVICE_ACCOUNT="${PROJECT_ID}@appspot.gserviceaccount.com"
+
+gcloud secrets add-iam-policy-binding db-username \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
 gcloud secrets add-iam-policy-binding db-password \
-  --member="serviceAccount:PROJECT_ID@appspot.gserviceaccount.com" \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding db-connection-name \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
   --role="roles/secretmanager.secretAccessor"
 ```
 
-Then modify `config.php` to read from Secret Manager.
+The `config.php` file automatically retrieves these secrets at runtime.
 
 ## Migration Questions
 

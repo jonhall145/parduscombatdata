@@ -129,7 +129,8 @@ gcloud services enable \
   sql-component.googleapis.com \
   cloudresourcemanager.googleapis.com \
   compute.googleapis.com \
-  dns.googleapis.com
+  dns.googleapis.com \
+  secretmanager.googleapis.com
 ```
 
 ### Step 3: Initialize App Engine
@@ -174,7 +175,7 @@ gcloud sql instances describe pardus-combat-db \
   --format="value(connectionName)"
 ```
 
-**Important**: Save these credentials securely:
+**Important**: Save these credentials - we'll store them in Secret Manager in the next step:
 - Root password
 - Application user password
 - Instance connection name (format: `project:region:instance`)
@@ -236,7 +237,46 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-### Step 6: Configure Application for Cloud SQL
+### Step 6: Store Credentials in Secret Manager
+
+For security best practices, store database credentials in Google Secret Manager:
+
+```bash
+# Create secrets for database credentials
+# Use the actual password you created for pardus_app_user in Step 4
+echo -n "pardus_app_user" | gcloud secrets create db-username --data-file=-
+echo -n "YOUR_SECURE_APP_PASSWORD_FROM_STEP4" | gcloud secrets create db-password --data-file=-
+echo -n "pardus-combat-data:europe-west2:pardus-combat-db" | gcloud secrets create db-connection-name --data-file=-
+
+# Get your App Engine service account email
+PROJECT_ID=$(gcloud config get-value project)
+SERVICE_ACCOUNT="${PROJECT_ID}@appspot.gserviceaccount.com"
+
+# Grant App Engine access to the secrets
+gcloud secrets add-iam-policy-binding db-username \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding db-password \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding db-connection-name \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+# Verify secrets were created
+gcloud secrets list
+```
+
+**Security Benefits:**
+- ✅ Credentials never stored in code or config files
+- ✅ Automatic encryption at rest
+- ✅ Access control via IAM
+- ✅ Audit logging of secret access
+- ✅ Version management for secrets
+
+### Step 7: Configure Application for Cloud SQL
 
 Create `app.yaml` in the project root:
 
@@ -311,26 +351,115 @@ skip_files:
   - ^(.*/)?config\.php$
 ```
 
-### Step 7: Update config.php for Cloud SQL
+### Step 8: Update config.php to Use Secret Manager
 
-Edit your `config.php` file:
+Edit your `config.php` file to retrieve credentials from Secret Manager.
+
+**Note:** This code is provided in `config.example.php` - you can simply copy that file to `config.php` as it already includes this implementation.
 
 ```php
 <?php
 // Database configuration for Google Cloud SQL
-// Connection via Unix socket in App Engine
+// Uses Secret Manager for secure credential storage
 
 // Detect if running on App Engine
 $onGCP = (getenv('GAE_ENV') !== false);
 
 if ($onGCP) {
-    // Cloud SQL connection via Unix socket
-    $connectionName = getenv('CLOUD_SQL_CONNECTION_NAME') ?: 'YOUR_CONNECTION_NAME';
+    // Retrieve credentials from Secret Manager
+    // Using Google Cloud Secret Manager PHP client would be ideal,
+    // but for App Engine Standard PHP, we use the REST API
+    function getSecret($secretName) {
+        // Validate inputs
+        $projectId = getenv('GOOGLE_CLOUD_PROJECT');
+        if (empty($projectId)) {
+            error_log("GOOGLE_CLOUD_PROJECT environment variable is not set");
+            return null;
+        }
+        
+        // Validate secret name to prevent injection attacks
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $secretName)) {
+            error_log("Invalid secret name format: {$secretName}");
+            return null;
+        }
+        
+        $url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Metadata-Flavor: Google'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5 second connection timeout
+        $tokenResponse = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($tokenResponse === false || !empty($curlError)) {
+            error_log("Failed to get access token from metadata server: " . $curlError);
+            return null;
+        }
+        
+        // Parse JSON and validate structure
+        $tokenData = json_decode($tokenResponse, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !isset($tokenData['access_token'])) {
+            error_log("Failed to parse access token response: " . json_last_error_msg());
+            return null;
+        }
+        
+        $token = $tokenData['access_token'];
+        
+        $secretUrl = "https://secretmanager.googleapis.com/v1/projects/{$projectId}/secrets/{$secretName}/versions/latest:access";
+        
+        $ch = curl_init($secretUrl);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . $token,
+            'Content-Type: application/json'
+        ));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5 second connection timeout
+        $secretResponse = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($secretResponse === false || !empty($curlError)) {
+            error_log("Failed to retrieve secret {$secretName}: cURL error: " . $curlError);
+            return null;
+        }
+        
+        if ($httpCode === 200) {
+            $data = json_decode($secretResponse, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !isset($data['payload']['data'])) {
+                error_log("Failed to parse secret {$secretName} response: " . json_last_error_msg());
+                return null;
+            }
+            return base64_decode($data['payload']['data']);
+        } else {
+            // Don't log full response body as it may contain sensitive info
+            error_log("Failed to retrieve secret {$secretName}: HTTP {$httpCode}");
+            return null;
+        }
+    }
+    
+    // Retrieve credentials from Secret Manager
+    $dbUsername = getSecret('db-username');
+    $dbPassword = getSecret('db-password');
+    $connectionName = getSecret('db-connection-name');
+    
+    // Fallback to environment variables if Secret Manager fails
+    if (!$dbUsername || !$dbPassword || !$connectionName) {
+        error_log("Secret Manager retrieval failed, falling back to environment variables");
+        $dbUsername = getenv('DB_USERNAME') ?: 'pardus_app_user';
+        $dbPassword = getenv('DB_PASSWORD');
+        $connectionName = getenv('CLOUD_SQL_CONNECTION_NAME');
+    }
+    
     $socketDir = getenv('DB_SOCKET_DIR') ?: '/cloudsql';
     
-    define('DB_SERVER', 'localhost:' . $socketDir . '/' . $connectionName);
-    define('DB_USERNAME', 'pardus_app_user');
-    define('DB_PASSWORD', 'YOUR_SECURE_APP_PASSWORD');
+    define('DB_SOCKET', $socketDir . '/' . $connectionName);
+    define('DB_USERNAME', $dbUsername);
+    define('DB_PASSWORD', $dbPassword);
     define('DB_NAME', 'pardus_combat_data');
 } else {
     // Local development settings
@@ -346,7 +475,7 @@ function getDatabaseConnection() {
     
     if ($onGCP) {
         // App Engine connection - use Unix socket
-        $conn = new mysqli(null, DB_USERNAME, DB_PASSWORD, DB_NAME, null, DB_SERVER);
+        $conn = new mysqli(null, DB_USERNAME, DB_PASSWORD, DB_NAME, null, DB_SOCKET);
     } else {
         // Standard connection
         $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
@@ -362,7 +491,13 @@ function getDatabaseConnection() {
 ?>
 ```
 
-### Step 8: Create .gcloudignore File
+**How it Works:**
+1. Code detects if running on App Engine
+2. If on App Engine, retrieves credentials from Secret Manager using the metadata server for authentication
+3. Falls back to environment variables if Secret Manager is unavailable
+4. Locally, uses traditional config values for development
+
+### Step 9: Create .gcloudignore File
 
 Create `.gcloudignore` in the project root:
 
@@ -402,7 +537,7 @@ tmp/
 temp/
 ```
 
-### Step 9: Deploy to App Engine
+### Step 10: Deploy to App Engine
 
 ```bash
 # Make sure you're in the project directory
@@ -411,8 +546,8 @@ cd /path/to/parduscombatdata
 # Update app.yaml with your actual Cloud SQL connection name
 # Edit app.yaml and replace YOUR_CONNECTION_NAME
 
-# Also update config.php with your credentials
-# Edit config.php and replace YOUR_SECURE_APP_PASSWORD and YOUR_CONNECTION_NAME
+# No need to add credentials to config.php - they're in Secret Manager!
+# The application will automatically retrieve them at runtime
 
 # Deploy to App Engine
 gcloud app deploy app.yaml
@@ -424,7 +559,7 @@ gcloud app deploy app.yaml
 gcloud app browse
 ```
 
-### Step 10: Configure Custom Domain (asdwolf.com)
+### Step 11: Configure Custom Domain (asdwolf.com)
 
 #### Add Custom Domain in GCP
 
@@ -471,7 +606,7 @@ gcloud app domain-mappings create combat.asdwolf.com --certificate-management=AU
 
 Then add the DNS records for the subdomain as well.
 
-### Step 11: Verify Deployment
+### Step 12: Verify Deployment
 
 ```bash
 # Check application status
@@ -488,7 +623,7 @@ curl -I https://asdwolf.com
 curl -I https://pardus-combat-data.uc.r.appspot.com
 ```
 
-### Step 12: Set Up SSL/TLS Certificate
+### Step 13: Set Up SSL/TLS Certificate
 
 App Engine automatically provisions and renews SSL certificates for custom domains. Verify:
 
@@ -649,14 +784,21 @@ WHERE table_schema = 'pardus_combat_data';
 
 ## Security Best Practices
 
-### 1. Secure Configuration Files
+### 1. Secure Credential Management
+
+✅ **Credentials are stored in Google Secret Manager** (configured in Step 6)
+- Never hardcode credentials in source code
+- Never commit credentials to Git
+- Use Secret Manager for all sensitive data
+- Rotate secrets regularly (every 90 days recommended)
 
 ```bash
-# Never commit config.php
+# Never commit config.php with real credentials
 echo "config.php" >> .gitignore
 
-# Use environment variables in app.yaml for sensitive data
-# Or use Google Secret Manager (recommended)
+# Verify secrets are properly configured
+gcloud secrets list
+gcloud secrets versions access latest --secret=db-password
 ```
 
 ### 2. Enable Cloud Audit Logs
@@ -807,39 +949,32 @@ error_reporting(E_ALL);
 
 ## Advanced Configuration (Optional)
 
-### Using Google Secret Manager
+### Rotating Secrets in Secret Manager
 
-For better security, store credentials in Secret Manager:
+To rotate database passwords or other credentials:
 
 ```bash
-# Enable Secret Manager API
-gcloud services enable secretmanager.googleapis.com
+# Update the database password
+gcloud sql users set-password pardus_app_user \
+  --instance=pardus-combat-db \
+  --password=NEW_SECURE_PASSWORD
 
-# Create secrets
-echo -n "pardus_app_user" | gcloud secrets create db-username --data-file=-
-echo -n "YOUR_SECURE_APP_PASSWORD" | gcloud secrets create db-password --data-file=-
+# Update the secret with the new password
+echo -n "NEW_SECURE_PASSWORD" | gcloud secrets versions add db-password --data-file=-
 
-# Grant App Engine access
-gcloud secrets add-iam-policy-binding db-username \
-  --member="serviceAccount:pardus-combat-data@appspot.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
+# No need to redeploy - App Engine will automatically use the latest version
+# The application retrieves secrets on each request
 
-gcloud secrets add-iam-policy-binding db-password \
-  --member="serviceAccount:pardus-combat-data@appspot.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
+# Verify the new version was created
+gcloud secrets versions list db-password
 ```
 
-Update `config.php`:
-```php
-<?php
-if ($onGCP) {
-    // Access secrets
-    $username = file_get_contents('php://stdin');
-    $password = file_get_contents('php://stdin');
-    // Configure connection with secrets
-}
-?>
-```
+**Secret Manager Best Practices:**
+- ✅ Rotate passwords every 90 days
+- ✅ Use strong, randomly-generated passwords
+- ✅ Monitor secret access via Cloud Audit Logs
+- ✅ Never log or print secret values
+- ✅ Use latest version (default) for automatic updates
 
 ### Enable Cloud CDN
 

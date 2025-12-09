@@ -64,7 +64,8 @@ To contribute combat data, install the userscript:
 
 ## Security Notes
 
-- Database credentials are stored in `config.php` which is excluded from version control
+- **Google Cloud Platform**: Credentials stored in Google Secret Manager (encrypted, audited, easily rotated)
+- **Self-Hosted**: Database credentials are stored in `config.php` which is excluded from version control
 - All database output is properly escaped to prevent XSS attacks
 - Input validation is performed on all user-submitted data
 - HTTPS should be used in production to protect data in transit

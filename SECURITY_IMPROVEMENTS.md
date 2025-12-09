@@ -107,35 +107,51 @@ This document summarizes the security improvements made to the Pardus Combat Dat
 
 ## Recommendations for Future Development
 
-1. **Always use config.php** for database connections
+1. **Use Secret Manager for credentials** (Google Cloud Platform deployments)
+   - Store credentials in Google Secret Manager instead of config files
+   - Provides encryption at rest, audit logging, and easy rotation
+   - See updated deployment documentation for implementation details
+   - Falls back to config.php for local development
+
+2. **Always use config.php** for database connections
    - Never hardcode credentials in source files
    - Use `getDatabaseConnection()` function
+   - For GCP deployments, config.php now integrates with Secret Manager
 
-2. **Always escape output** with `htmlspecialchars($value, ENT_QUOTES, 'UTF-8')`
+3. **Always escape output** with `htmlspecialchars($value, ENT_QUOTES, 'UTF-8')`
    - Prevents XSS vulnerabilities
    - Required for all user-facing output
 
-3. **Use whitelist validation** for dynamic SQL components
+4. **Use whitelist validation** for dynamic SQL components
    - Never concatenate user input into SQL queries
    - Validate against explicit whitelists
 
-4. **Require HTTPS in production**
+5. **Require HTTPS in production**
    - Protects credentials and session data
    - Required for secure cookie flags to work properly
 
-5. **Regular security audits**
+6. **Regular security audits**
    - Run CodeQL or similar tools regularly
    - Review code for security issues before deployment
    - Keep dependencies updated
+   - Review Secret Manager audit logs for credential access
 
 ## Migration Notes
 
 ### For Existing Installations
 
+**Self-Hosted / Traditional Setup:**
 1. Create `config.php` from `config.example.php`
 2. Update with your actual database credentials
 3. Ensure `config.php` has appropriate file permissions (e.g., 640)
 4. Configure web server to use HTTPS
+5. Test all functionality after deployment
+
+**Google Cloud Platform Setup:**
+1. Follow the updated deployment guide: [HOSTING_GOOGLE_CLOUD.md](HOSTING_GOOGLE_CLOUD.md)
+2. Create `config.php` from `config.example.php` (Secret Manager integration included)
+3. Store credentials in Secret Manager (Step 6 in deployment guide)
+4. No need to edit config.php with actual credentials - they're retrieved from Secret Manager
 5. Test all functionality after deployment
 
 ### Breaking Changes
