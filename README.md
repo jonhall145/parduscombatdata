@@ -14,11 +14,13 @@ A web application for analyzing combat data from the Pardus online game. This to
 
 ### Deployment Options
 
-**Google Cloud Platform (Recommended)**
+**🚀 Google Cloud Platform (Recommended - FREE)**
 - **Free Tier**: Host for free on Google Cloud's free tier with your custom domain
-- **Quick Start**: See [QUICKSTART_GCP.md](QUICKSTART_GCP.md) for rapid deployment
-- **Full Guide**: See [HOSTING_GOOGLE_CLOUD.md](HOSTING_GOOGLE_CLOUD.md) for comprehensive instructions
-- Includes automatic scaling, SSL certificates, and managed database
+- **📚 Documentation Index**: See [HOSTING_INDEX.md](HOSTING_INDEX.md) for complete guide navigation
+- **⚡ Quick Start**: See [QUICKSTART_GCP.md](QUICKSTART_GCP.md) for rapid deployment (15-30 min)
+- **📖 Full Guide**: See [HOSTING_GOOGLE_CLOUD.md](HOSTING_GOOGLE_CLOUD.md) for comprehensive instructions (1-2 hours)
+- **❓ FAQ**: See [FAQ_GCP_HOSTING.md](FAQ_GCP_HOSTING.md) for common questions and troubleshooting
+- Includes automatic scaling, SSL certificates, managed database, and monitoring
 
 **Self-Hosted / Traditional Setup**
 
