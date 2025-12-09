@@ -5,7 +5,7 @@
 <th>d_shots</th><th>d_jams</th><th>d_hits</th><th>d_crits</th><th>d_missiles fired</th><th>d_missiles hit</th><th>d_missiles crit</th></tr>
 <?php
  /* Your password */
-    $password = 'SecureCombatStudy';
+    $password = 'redactedpassword';
 
     if (empty($_COOKIE['password']) || $_COOKIE['password'] !== $password) {
         // Password not set or incorrect. Send to login.php.
