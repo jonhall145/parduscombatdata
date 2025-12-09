@@ -14,7 +14,14 @@ require_once 'config.php';
     $opponent = isset($_POST["opponent"]) ? $_POST["opponent"] : "All opponents";
     $skill = isset($_POST["focusskill"]) ? $_POST["focusskill"] : "tactics";
     $y_axis = isset($_POST["y_axis"]) ? $_POST["y_axis"] : "Attacker hit rate";
-    $validskills = array("0", "tactics","hit_accuracy", "maneuver", "weaponry", "engineering");
+    // Define valid skills with explicit column name mapping for security
+    $validskills = [
+        "tactics" => "tactics",
+        "hit_accuracy" => "hit_accuracy", 
+        "maneuver" => "maneuver",
+        "weaponry" => "weaponry",
+        "engineering" => "engineering"
+    ];
     $validopponents = array("0","All opponents");
     
     $conn = getDatabaseConnection();
@@ -34,12 +41,14 @@ require_once 'config.php';
     }
 
     
-    // Validate skill parameter to prevent SQL injection
-    if (!in_array($skill, $validskills, true)) {
+    // Validate skill parameter to prevent SQL injection - use whitelist mapping
+    if (!isset($validskills[$skill])) {
         die("Invalid skill parameter");
     }
+    // Get the validated column name from the whitelist
+    $skillColumn = $validskills[$skill];
     
-    if (array_search($opponent, $validopponents,TRUE) && array_search($skill, $validskills, TRUE) && is_numeric($tac_min) && is_numeric($tac_max) && is_numeric($ha_min) && is_numeric($ha_max) && is_numeric($man_min) && is_numeric($man_max) && is_numeric($weap_min) && is_numeric($weap_max) && is_numeric($eng_min) && is_numeric($eng_max))
+    if (array_search($opponent, $validopponents,TRUE) && isset($validskills[$skill]) && is_numeric($tac_min) && is_numeric($tac_max) && is_numeric($ha_min) && is_numeric($ha_max) && is_numeric($man_min) && is_numeric($man_max) && is_numeric($weap_min) && is_numeric($weap_max) && is_numeric($eng_min) && is_numeric($eng_max))
     { //numbers are numeric, Opponent is acceptable, Skill is acceptable
         if ($opponent == "All opponents") {
             $defenderselect = "%";
@@ -48,9 +57,9 @@ require_once 'config.php';
             }
         
 
-        // Use validated skill parameter - safe because we checked it's in the whitelist
+        // Use validated skill column from whitelist - safe from SQL injection
         $sqlcustomquery = $conn->prepare("
-        SELECT FLOOR(`" . $skill . "`), SUM(`shots`), SUM(`hits`),SUM(`crits`),SUM(`d_shots`),SUM(`d_hits`),SUM(`d_crits`),`defender`
+        SELECT FLOOR(`" . $skillColumn . "`), SUM(`shots`), SUM(`hits`),SUM(`crits`),SUM(`d_shots`),SUM(`d_hits`),SUM(`d_crits`),`defender`
         FROM `combat_data`
         WHERE
         `tactics` BETWEEN ? AND ?
@@ -59,7 +68,7 @@ require_once 'config.php';
         AND `weaponry` BETWEEN ? AND ?
         AND `engineering` BETWEEN ? AND ?
         AND `defender` LIKE ?
-        GROUP BY FLOOR(`" . $skill . "`), `defender`;");
+        GROUP BY FLOOR(`" . $skillColumn . "`), `defender`;");
         
         $sqlcustomquery->bind_param("dddddddddds",$tac_min,$tac_max,$ha_min,$ha_max,$man_min,$man_max,$weap_min,$weap_max,$eng_min,$eng_max,$defenderselect);
         $sqlcustomquery->execute();
@@ -77,7 +86,7 @@ require_once 'config.php';
              
         }
         $customresult -> data_seek(0);
-        $skillkey = "FLOOR(`".$skill."`)";
+        $skillkey = "FLOOR(`".$skillColumn."`)";
         echo "</table></div>";
         //Now script to draw chart
         if ($opponent == "All opponents")

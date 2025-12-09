@@ -468,16 +468,21 @@ function loadShipInfo(combatStats, skillsToSend) {
             } catch (error) {}
             
             try {
-                // Check for Strong ECM first, then regular ECM
-                if (response.responseText.match(/Strong ECM Jammer/gm)) {
-                    shipInfo.ECM = response.responseText.match(/Strong ECM Jammer/gm)[0];
-                } else if (response.responseText.match(/ECM Jammer/gm)) {
-                    shipInfo.ECM = response.responseText.match(/ECM Jammer/gm)[0];
+                // Check for Strong ECM first, then regular ECM (cache match results)
+                var strongECMMatch = response.responseText.match(/Strong ECM Jammer/gm);
+                var ecmMatch = response.responseText.match(/ECM Jammer/gm);
+                if (strongECMMatch) {
+                    shipInfo.ECM = strongECMMatch[0];
+                } else if (ecmMatch) {
+                    shipInfo.ECM = ecmMatch[0];
                 }
             } catch (error) {}
             
             try {
-                shipInfo.ECCM = response.responseText.match(/ECCM Jammer/gm)[0];
+                var eccmMatch = response.responseText.match(/ECCM Jammer/gm);
+                if (eccmMatch) {
+                    shipInfo.ECCM = eccmMatch[0];
+                }
             } catch (error) {}
 
             submitToServer(combatStats, skillsToSend, shipInfo);
