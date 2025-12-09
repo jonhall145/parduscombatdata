@@ -20,6 +20,7 @@ Use this checklist to track your deployment progress. Check off items as you com
   - [ ] Cloud SQL Admin API
   - [ ] Cloud SQL API
   - [ ] DNS API
+  - [ ] Secret Manager API
 - [ ] App Engine initialized in europe-west2 region (or europe-west1/europe-west3)
 
 ## Database Setup
@@ -34,15 +35,23 @@ Use this checklist to track your deployment progress. Check off items as you com
 - [ ] `combat_data` table created successfully
 - [ ] Permissions granted to application user
 
+## Secret Manager Setup
+
+- [ ] Secret Manager API enabled
+- [ ] Database username secret created: `db-username`
+- [ ] Database password secret created: `db-password`
+- [ ] Connection name secret created: `db-connection-name`
+- [ ] IAM permissions granted to App Engine service account for all secrets
+- [ ] Secrets verified with `gcloud secrets list`
+
 ## Application Configuration
 
 - [ ] `app.yaml` updated with Cloud SQL connection name
 - [ ] `config.php` created from `config.example.php`
-- [ ] `config.php` updated with:
-  - [ ] Cloud SQL connection name
-  - [ ] Application database password
+- [ ] `config.php` includes Secret Manager integration (default in example)
 - [ ] `.gcloudignore` file reviewed
 - [ ] Configuration files not committed to git
+- [ ] Verified no hardcoded credentials in config.php
 
 ## Application Deployment
 
@@ -103,21 +112,24 @@ Use this checklist to track your deployment progress. Check off items as you com
 
 ## Security Verification
 
+- [ ] Credentials stored in Secret Manager (not in code)
 - [ ] `config.php` excluded from version control
 - [ ] No credentials in committed files
 - [ ] HTTPS enforced (HTTP redirects to HTTPS)
-- [ ] Database credentials secured
+- [ ] Secret Manager IAM permissions correct
 - [ ] Cloud SQL not publicly accessible
 - [ ] Application logs reviewed for security issues
 - [ ] Input validation tested
 - [ ] XSS protection verified
+- [ ] Secret access audit logs enabled
 
 ## Documentation & Handoff
 
 - [ ] Credentials saved in secure location:
   - [ ] GCP project ID
-  - [ ] Cloud SQL root password
-  - [ ] Cloud SQL app user password
+  - [ ] Cloud SQL root password (for admin tasks)
+  - [ ] App credentials stored in Secret Manager (verified)
+  - [ ] Secret Manager secret names documented
   - [ ] Cloud SQL connection name
 - [ ] Deployment commands documented
 - [ ] Common maintenance tasks noted
@@ -147,6 +159,8 @@ Use this checklist to track your deployment progress. Check off items as you com
 - [ ] Test backup restoration (monthly)
 - [ ] Update dependencies if needed
 - [ ] Review security best practices
+- [ ] Rotate secrets every 90 days (quarterly)
+- [ ] Review Secret Manager audit logs
 
 ## Emergency Contacts & Resources
 
@@ -186,6 +200,11 @@ gcloud app domain-mappings describe asdwolf.com
 
 # List backups
 gcloud sql backups list --instance=pardus-combat-db
+
+# Manage secrets
+gcloud secrets list
+gcloud secrets versions access latest --secret=db-password
+gcloud secrets versions add db-password --data-file=-
 ```
 
 ---

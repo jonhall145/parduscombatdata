@@ -31,7 +31,7 @@ gcloud config set project pardus-combat-data
 # Visit: https://console.cloud.google.com/billing
 
 # Enable required APIs
-gcloud services enable appengine.googleapis.com sqladmin.googleapis.com sql-component.googleapis.com dns.googleapis.com
+gcloud services enable appengine.googleapis.com sqladmin.googleapis.com sql-component.googleapis.com dns.googleapis.com secretmanager.googleapis.com
 
 # Initialize App Engine
 gcloud app create --region=europe-west2
@@ -69,6 +69,31 @@ gcloud sql connect pardus-combat-db --user=root
 # Run SQL commands from database_schema.sql
 mysql> source database_schema.sql
 mysql> EXIT;
+```
+
+## 5. Store Credentials in Secret Manager
+
+```bash
+# Create secrets for secure credential storage
+echo -n "pardus_app_user" | gcloud secrets create db-username --data-file=-
+echo -n "REPLACE_WITH_SECURE_PASSWORD" | gcloud secrets create db-password --data-file=-
+echo -n "pardus-combat-data:europe-west2:pardus-combat-db" | gcloud secrets create db-connection-name --data-file=-
+
+# Grant App Engine access to secrets
+PROJECT_ID=$(gcloud config get-value project)
+SERVICE_ACCOUNT="${PROJECT_ID}@appspot.gserviceaccount.com"
+
+gcloud secrets add-iam-policy-binding db-username \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding db-password \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
+
+gcloud secrets add-iam-policy-binding db-connection-name \
+  --member="serviceAccount:${SERVICE_ACCOUNT}" \
+  --role="roles/secretmanager.secretAccessor"
 ```
 
 Or manually:
@@ -116,7 +141,7 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-## 5. Configure Application Files
+## 6. Configure Application Files
 
 ### Update app.yaml
 
@@ -133,15 +158,9 @@ beta_settings:
 cp config.example.php config.php
 ```
 
-Edit `config.php` and update:
+**Note:** No need to edit config.php with credentials! The file already includes Secret Manager integration that automatically retrieves credentials at runtime.
 
-```php
-// In the GCP section:
-$connectionName = 'pardus-combat-data:europe-west2:pardus-combat-db';
-define('DB_PASSWORD', 'YOUR_SECURE_APP_PASSWORD');
-```
-
-## 6. Deploy Application
+## 7. Deploy Application
 
 ```bash
 # From the project directory
@@ -156,7 +175,7 @@ gcloud app browse
 
 Your app will be available at: `https://pardus-combat-data.uc.r.appspot.com`
 
-## 7. Configure Custom Domain
+## 8. Configure Custom Domain
 
 ```bash
 # Add custom domain
@@ -182,7 +201,7 @@ gcloud app domain-mappings create asdwolf.com --certificate-management=AUTOMATIC
 
 DNS propagation takes 0-48 hours (usually < 1 hour).
 
-## 8. Verify Deployment
+## 9. Verify Deployment
 
 ```bash
 # Check app status
@@ -198,7 +217,7 @@ gcloud app logs tail
 curl -I https://asdwolf.com
 ```
 
-## 9. Set Up Billing Alerts
+## 10. Set Up Billing Alerts
 
 ```bash
 # Get billing account ID
@@ -273,11 +292,13 @@ gcloud app domain-mappings describe asdwolf.com
 
 ## Security Notes
 
+- ✅ Credentials stored in Secret Manager (never in code)
 - ✅ config.php is in .gitignore (never commit credentials)
 - ✅ HTTPS enforced via App Engine
 - ✅ SQL injection protection via whitelisting
 - ✅ XSS protection via htmlspecialchars
-- ⚠️ Keep passwords secure
+- ✅ Automatic credential encryption at rest
+- ⚠️ Rotate secrets every 90 days
 - ⚠️ Enable billing alerts
 
 ---
