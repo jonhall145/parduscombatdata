@@ -34,17 +34,19 @@ if ($onGCP) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Metadata-Flavor: Google'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5 second connection timeout
+        $tokenResponse = curl_exec($ch);
         $curlError = curl_error($ch);
         curl_close($ch);
         
-        if ($response === false || !empty($curlError)) {
+        if ($tokenResponse === false || !empty($curlError)) {
             error_log("Failed to get access token from metadata server: " . $curlError);
             return null;
         }
         
         // Parse JSON and validate structure
-        $tokenData = json_decode($response, true);
+        $tokenData = json_decode($tokenResponse, true);
         if (json_last_error() !== JSON_ERROR_NONE || !isset($tokenData['access_token'])) {
             error_log("Failed to parse access token response: " . json_last_error_msg());
             return null;
@@ -60,18 +62,20 @@ if ($onGCP) {
             'Content-Type: application/json'
         ));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5 second connection timeout
+        $secretResponse = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         curl_close($ch);
         
-        if ($response === false || !empty($curlError)) {
+        if ($secretResponse === false || !empty($curlError)) {
             error_log("Failed to retrieve secret {$secretName}: cURL error: " . $curlError);
             return null;
         }
         
         if ($httpCode === 200) {
-            $data = json_decode($response, true);
+            $data = json_decode($secretResponse, true);
             if (json_last_error() !== JSON_ERROR_NONE || !isset($data['payload']['data'])) {
                 error_log("Failed to parse secret {$secretName} response: " . json_last_error_msg());
                 return null;
