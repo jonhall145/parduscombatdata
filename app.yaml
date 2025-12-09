@@ -1,0 +1,81 @@
+runtime: php82
+
+# App Engine standard environment
+env: standard
+
+# Instance class (F1 is free tier)
+instance_class: F1
+
+# Auto-scaling configuration
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+  target_cpu_utilization: 0.65
+
+# Environment variables
+env_variables:
+  # Set to production mode
+  APP_ENV: 'production'
+
+# Database connection via Unix socket
+# Replace YOUR_CONNECTION_NAME with actual value from:
+# gcloud sql instances describe pardus-combat-db --format="value(connectionName)"
+# Format: project:region:instance (e.g., pardus-combat-data:us-central1:pardus-combat-db)
+beta_settings:
+  cloud_sql_instances: "YOUR_CONNECTION_NAME"
+
+# Handlers for static files (cached for performance)
+handlers:
+  # Userscripts
+  - url: /(skillstat.*\.user\.js)
+    static_files: \1
+    upload: skillstat.*\.user\.js
+    mime_type: application/javascript
+    expiration: "1d"
+  
+  # Skill stat user testing script
+  - url: /skill_stat_user_testing\.user\.js
+    static_files: skill_stat_user_testing.user.js
+    upload: skill_stat_user_testing\.user\.js
+    mime_type: application/javascript
+    expiration: "1d"
+  
+  # Styles
+  - url: /styles\.css
+    static_files: styles.css
+    upload: styles\.css
+    mime_type: text/css
+    expiration: "1d"
+  
+  # Favicon
+  - url: /favicon\.ico
+    static_files: favicon.ico
+    upload: favicon\.ico
+    mime_type: image/x-icon
+    expiration: "7d"
+  
+  # HTML files
+  - url: /(.+\.html)
+    static_files: \1
+    upload: .+\.html
+    expiration: "1h"
+  
+  # All other requests go to PHP
+  - url: /.*
+    script: auto
+    secure: always
+
+# Skip files during deployment
+skip_files:
+  - ^(.*/)?#.*#$
+  - ^(.*/)?.*~$
+  - ^(.*/)?.*\.py[co]$
+  - ^(.*/)?.*/RCS/.*$
+  - ^(.*/)?\..*$
+  - ^(.*/)?.*\.csv$
+  - ^(.*/)?error_log.*$
+  - ^(.*/)?README\.md$
+  - ^(.*/)?SECURITY_IMPROVEMENTS\.md$
+  - ^(.*/)?HOSTING_GOOGLE_CLOUD\.md$
+  - ^(.*/)?databasetest\.php$
+  - ^(.*/)?testchart.*\.html$
