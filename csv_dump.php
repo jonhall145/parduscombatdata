@@ -1,6 +1,6 @@
 <?php
  /* Your password */
-    $password = 'SecureCombatStudy';
+    $password = 'redactedpassword';
 
     if (empty($_COOKIE['password']) || $_COOKIE['password'] !== $password) {
         // Password not set or incorrect. Send to login.php.
