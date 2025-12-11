@@ -43,7 +43,8 @@ require_once 'config.php';
     
     // Validate skill parameter to prevent SQL injection - use whitelist mapping
     if (!isset($validskills[$skill])) {
-        die("Invalid skill parameter");
+        http_response_code(400);
+        die("Bad Request: Invalid skill parameter");
     }
     // Get the validated column name from the whitelist
     $skillColumn = $validskills[$skill];

@@ -1,6 +1,12 @@
 <?php
+    require_once 'config.php';
+    
+    if (!defined('CSV_DUMP_PASSWORD')) {
+        die('CSV dump password not configured. Please define CSV_DUMP_PASSWORD in config.php');
+    }
+    
     /* Your password */
-    $password = 'SecureCombatStudy';
+    $password = CSV_DUMP_PASSWORD;
 
     /* Redirects here after login */
     $redirect_after_login = 'csv_dump.php';
