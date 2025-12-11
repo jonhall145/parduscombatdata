@@ -25,7 +25,8 @@ $required_params = ["attacker", "ship", "crits", "critsm", "jams", "shots", "sho
 
 foreach ($required_params as $param) {
     if (!isset($_POST[$param])) {
-        die("Missing required parameter: " . htmlspecialchars($param, ENT_QUOTES, 'UTF-8'));
+        http_response_code(400);
+        die("Bad Request: Missing required parameter '" . htmlspecialchars($param, ENT_QUOTES, 'UTF-8') . "'");
     }
 }
 
@@ -55,6 +56,8 @@ $hitsm2 = (int)$_POST["hitsm2"];
 $time = time();
 $ship2 = $_POST["ship2"];
 
+// Optional parameters with default values
+// These are newer fields that may not be present in all userscript versions
 $evasion = isset($_POST['evasion']) ? $_POST['evasion'] : null;
 $ecm = isset($_POST['ECM']) ? $_POST['ECM'] : "unknown";
 $eccm = isset($_POST['ECCM']) ? $_POST['ECCM'] : "unknown";
@@ -76,7 +79,8 @@ if (array_search($defender, $npclist, true) !== false) {
     
 } else {
     //not sure what's happened here - break! and don't load the data.
-    die("Bad data");
+    http_response_code(400);
+    die("Bad Request: Invalid combat data - defender is not in NPC list and shots2 is not 0");
 }
 
 

@@ -7,7 +7,7 @@
  require_once 'config.php';
  
  if (!defined('CSV_DUMP_PASSWORD')) {
-     die('CSV dump password not configured in config.php');
+     die('CSV dump password not configured. Please define CSV_DUMP_PASSWORD in config.php');
  }
  
  $password = CSV_DUMP_PASSWORD;

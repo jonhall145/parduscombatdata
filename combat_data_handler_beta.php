@@ -105,7 +105,8 @@ if (array_search($defender, $npclist, true) !== false) {
     
 } else {
     //not sure what's happened here - break! and don't load the data.
-    die("Bad data");
+    http_response_code(400);
+    die("Bad Request: Invalid combat data - defender is not in NPC list and shots2 is not 0");
 }
 
 
