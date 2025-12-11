@@ -17,18 +17,31 @@ echo "Connected successfully <br>";
 
 echo "<br>";
 
-$attacker = $_POST["attacker"] ;
-$ship =  $_POST["ship"];
-$crits = $_POST["crits"];
-$critsm = $_POST["critsm"];
-$jams = $_POST["jams"];
-$shots = $_POST["shots"];
-$shotsm = $_POST["shotsm"];
-$crits2 = $_POST["crits2"];
-$critsm2 = $_POST["critsm2"];
-$jams2 = $_POST["jams2"];
-$shots2 = $_POST["shots2"];
-$shotsm2 = $_POST["shotsm2"];
+// Validate required POST parameters
+$required_params = ["attacker", "ship", "crits", "critsm", "jams", "shots", "shotsm",
+                    "crits2", "critsm2", "jams2", "shots2", "shotsm2", "logid", "defender",
+                    "tactics", "hit_accuracy", "maneuver", "weaponry", "engineering",
+                    "hits", "hits2", "hitsm", "hitsm2", "ship2"];
+
+foreach ($required_params as $param) {
+    if (!isset($_POST[$param])) {
+        http_response_code(400);
+        die("Bad Request: Missing required parameter '" . htmlspecialchars($param, ENT_QUOTES, 'UTF-8') . "'");
+    }
+}
+
+$attacker = $_POST["attacker"];
+$ship = $_POST["ship"];
+$crits = (int)$_POST["crits"];
+$critsm = (int)$_POST["critsm"];
+$jams = (int)$_POST["jams"];
+$shots = (int)$_POST["shots"];
+$shotsm = (int)$_POST["shotsm"];
+$crits2 = (int)$_POST["crits2"];
+$critsm2 = (int)$_POST["critsm2"];
+$jams2 = (int)$_POST["jams2"];
+$shots2 = (int)$_POST["shots2"];
+$shotsm2 = (int)$_POST["shotsm2"];
 $logid = $_POST["logid"];
 $defender = $_POST["defender"];
 $tac = (float)$_POST["tactics"];
@@ -36,14 +49,15 @@ $ha = (float)$_POST["hit_accuracy"];
 $man = (float)$_POST["maneuver"];
 $weap = (float)$_POST["weaponry"];
 $eng = (float)$_POST["engineering"];
-$hits = $_POST["hits"];
-$hits2 = $_POST["hits2"];
-$hitsm = $_POST["hitsm"];
-$hitsm2 = $_POST["hitsm2"];
+$hits = (int)$_POST["hits"];
+$hits2 = (int)$_POST["hits2"];
+$hitsm = (int)$_POST["hitsm"];
+$hitsm2 = (int)$_POST["hitsm2"];
 $time = time();
-$ship2 =  $_POST["ship2"];
+$ship2 = $_POST["ship2"];
 
-
+// Optional parameters with default values
+// These are newer fields that may not be present in all userscript versions
 $evasion = isset($_POST['evasion']) ? $_POST['evasion'] : null;
 $ecm = isset($_POST['ECM']) ? $_POST['ECM'] : "unknown";
 $eccm = isset($_POST['ECCM']) ? $_POST['ECCM'] : "unknown";
@@ -53,13 +67,10 @@ VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?
 
 //test if defender is NPC and if not, switch it around
 
-if (array_search($defender,$npclist)) {
+if (array_search($defender, $npclist, true) !== false) {
     //$defender as expected - go ahead
     $attacker = "anon"; //anonymise data
-  //  error_log("attacker = ". $attacker . "ship = ". $ship . "crits = ". $crits . "critsm = ". $critsm . "hits  = ". $hits  . "jams = ". $jams . "shots = ". $shots . "shotsm = ". $shotsm . "defender = ". $defender . "crits2 = ". $crits2 . "hits2 = ". $hits2 . "critsm2 = ". $critsm2 . "jams2 = ". $jams2 . "shots2 = ". $shots2 . "shotsm2 = ". $shotsm2 . "logid = ". $logid . "time = ". $time . "tac = ". $tac . "ha = ". $ha . "man = ". $man . "weap = ". $weap . "eng = ". $eng . "hitsm = ". $hitsm . "hitsm2 = ". $hitsm2 . "evasion = ". $evasion . "ecm = ". $ecm . "eccm = ". $eccm);
     $sqlinsert->bind_param("ssiiiiiisiiiiiiiidddddiidss", $attacker, $ship, $crits, $critsm, $hits , $jams, $shots, $shotsm, $defender, $crits2,$hits2, $critsm2, $jams2, $shots2, $shotsm2,$logid,$time,$tac,$ha,$man,$weap,$eng,$hitsm,$hitsm2,$evasion,$ecm,$eccm);
-    //error_log("Submitted log at " . time());
-    ;
 
 } elseif ($shots2 == 0) {
     //we have a retreat hold - do some swapping
@@ -68,7 +79,8 @@ if (array_search($defender,$npclist)) {
     
 } else {
     //not sure what's happened here - break! and don't load the data.
-    die("Bad data");
+    http_response_code(400);
+    die("Bad Request: Invalid combat data - defender is not in NPC list and shots2 is not 0");
 }
 
 

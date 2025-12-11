@@ -35,7 +35,7 @@ require_once 'config.php';
     //$validopponents[] = "All opponents";
     while($row = $npcresults->fetch_row())
     {
-        if (array_search($row[0],$npclist,TRUE)){
+        if (array_search($row[0], $npclist, true) !== false){
         $validopponents[] = $row[0];
         }
     }
@@ -43,7 +43,8 @@ require_once 'config.php';
     
     // Validate skill parameter to prevent SQL injection - use whitelist mapping
     if (!isset($validskills[$skill])) {
-        die("Invalid skill parameter");
+        http_response_code(400);
+        die("Bad Request: Invalid skill parameter");
     }
     // Get the validated column name from the whitelist
     $skillColumn = $validskills[$skill];
@@ -76,7 +77,7 @@ require_once 'config.php';
         echo "<div id=\"htmlContent\">";
         echo "<table><tr><th></th><th colspan=\"3\">Attacker stats</th><th colspan=\"3\">Defender stats</th></tr><tr><th>". htmlspecialchars(ucfirst($skill), ENT_QUOTES, 'UTF-8') . "</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Shots</th><th>Hits</th><th>Crits</th><th>Opponent</th></tr>";
         while($content = $customresult->fetch_assoc()) {
-            if(array_search($content["defender"],$npclist,TRUE)) {
+            if(array_search($content["defender"], $npclist, true) !== false) {
             echo "<tr>";
             foreach ($content as $key=>$value) {
                 echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
