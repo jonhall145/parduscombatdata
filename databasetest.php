@@ -10,19 +10,10 @@
 <?php
 # include 'Website.html';
 
-
-$servername = "localhost";
-$username = "asdwtbdf_guest2";
-$password = "redacted PW";
-$dbname = "asdwtbdf_pardusmonsterdata";
+require_once 'config.php';
 
 // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
+$conn = getDatabaseConnection();
 echo "Connected successfully <br>";
 
 $tabletitles = array(
@@ -51,7 +42,7 @@ if ($laserresult->num_rows > 0) {
       echo "<table><tr>";
       $dummy = $laserheadingsresult->fetch_assoc();
       while($heading = $laserheadingsresult->fetch_assoc()){
-          echo "<th>" . $heading["COLUMN_NAME"] . "</th>";
+          echo "<th>" . htmlspecialchars($heading["COLUMN_NAME"], ENT_QUOTES, 'UTF-8') . "</th>";
           
       }
     echo "</tr>";
@@ -66,7 +57,7 @@ else{
     echo "<tr>";
     array_shift($content);
     foreach ($content as $key=>$value) {
-        echo "<td>" . $value . "</td>";
+        echo "<td>" . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</td>";
         }
     echo "</tr>";
       
