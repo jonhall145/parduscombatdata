@@ -35,6 +35,13 @@ Use this checklist to track your deployment progress. Check off items as you com
 - [ ] `combat_data` table created successfully
 - [ ] Permissions granted to application user
 
+### Database Upgrade (existing deployments)
+
+- [ ] MySQL version is 8+ (CHECK constraints enforced)
+- [ ] Ran ALTERs: BIGINT submission_time, UNIQUE logid, composite indexes (defender+skills, defender+submission_time, attacker+submission_time)
+- [ ] Ran CHECK constraints for all counters (crits/hits/shots/jams attacker/defender/secondary)
+- [ ] Verified no duplicate logid rows before adding UNIQUE
+
 ## Secret Manager Setup
 
 - [ ] Secret Manager API enabled

@@ -88,7 +88,7 @@ $evasion = isset($_POST['evasion']) ? $_POST['evasion'] : null;
 $ecm = isset($_POST['ECM']) ? $_POST['ECM'] : "unknown";
 $eccm = isset($_POST['ECCM']) ? $_POST['ECCM'] : "unknown";
 
-$sqlinsert = $conn->prepare("INSERT INTO `combat_data` (`ID`, `attacker`, `ship`, `crits`, `critsm`, `hits`, `jams`, `shots`, `shotsm`, `defender`, `d_crits`, `d_hits`, `d_critsm`, `d_jams`, `d_shots`, `d_shotsm`, `log_id`, `log_time`, `tactics`, `hit_accuracy`, `maneuver`, `weaponry`, `engineering`,`hitsm`,`d_hitsm`,`evasion`,`ECM`,`ECCM`)
+$sqlinsert = $conn->prepare("INSERT INTO `combat_data` (`id`, `attacker`, `ship`, `crits`, `critsm`, `hits`, `jams`, `shots`, `shotsm`, `defender`, `d_crits`, `d_hits`, `d_critsm`, `d_jams`, `d_shots`, `d_shotsm`, `logid`, `submission_time`, `tactics`, `hit_accuracy`, `maneuver`, `weaponry`, `engineering`,`hitsm`,`d_hitsm`,`evasion`,`ECM`,`ECCM`)
 VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?)");
 
 //test if defender is NPC and if not, switch it around

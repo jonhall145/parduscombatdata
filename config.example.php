@@ -1,7 +1,7 @@
 <?php
 // Database configuration example
-// Copy this file to config.php and update with your local development credentials
-// For Google Cloud Platform deployment, credentials are stored in Secret Manager
+// Copy this file to config.php and update with your local development credentials only.
+// For Google Cloud Platform deployment, credentials MUST come from Secret Manager (no plaintext/env fallbacks in production).
 
 // Detect if running on Google App Engine
 $onGCP = (getenv('GAE_ENV') !== false);
@@ -97,9 +97,9 @@ if ($onGCP) {
     $dbPassword = getSecret('db-password');
     $connectionName = getSecret('db-connection-name');
     
-    // Fallback to environment variables if Secret Manager fails
+    // Fallback to environment variables if Secret Manager fails (development only)
     if (!$dbUsername || !$dbPassword || !$connectionName) {
-        error_log("Secret Manager retrieval failed, falling back to environment variables");
+        error_log("Secret Manager retrieval failed, falling back to environment variables (do not rely on this in production)");
         $dbUsername = getenv('DB_USERNAME') ?: 'pardus_app_user';
         $dbPassword = getenv('DB_PASSWORD');
         $connectionName = getenv('CLOUD_SQL_CONNECTION_NAME') ?: 'YOUR_CONNECTION_NAME';

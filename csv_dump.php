@@ -13,15 +13,14 @@
         exit;
     }
  $conn = getDatabaseConnection();
- $export = "SELECT `tactics`, `hit_accuracy`,`maneuver`,`weaponry`,`engineering`,`evasion`,`ECM`,`ECCM`,`shots`,`jams`, `hits`, `crits`, `shotsm`,`hitsm`,`critsm`, `ship`,`defender`, `d_shots`, `d_jams`, `d_hits`, `d_crits`,`d_shotsm`,`d_hitsm`,`d_critsm`, `log_time`  FROM `combat_data` WHERE 1";
+ $export = "SELECT `id`,`attacker`,`ship`,`ship2`,`defender`,`logid`,`tactics`,`hit_accuracy`,`maneuver`,`weaponry`,`engineering`,`evasion`,`ECM`,`ECCM`,`crits`,`critsm`,`hits`,`hitsm`,`shots`,`shotsm`,`jams`,`d_crits`,`d_critsm`,`d_hits`,`d_hitsm`,`d_shots`,`d_shotsm`,`d_jams`,`crits2`,`critsm2`,`hits2`,`hitsm2`,`shots2`,`shotsm2`,`jams2`,`submission_time` FROM `combat_data`";
  $exportresults = $conn->query($export);
- $delimiter = ",";
  $temp = fopen("db.csv", 'w');
- $titles = array("tactics","hit_accuracy","maneuver","weaponry","engineering","evasion","ECM","ECCM","shots","jams","hits","crits","missiles fired","missiles hit","missiles crit","ship","defender","d_shots","d_jams","d_hits","d_crits","d_missiles fired","d_missiles hit","d_missiles crit","log_time");
+ $titles = array("id","attacker","ship","ship2","defender","logid","tactics","hit_accuracy","maneuver","weaponry","engineering","evasion","ECM","ECCM","crits","critsm","hits","hitsm","shots","shotsm","jams","d_crits","d_critsm","d_hits","d_hitsm","d_shots","d_shotsm","d_jams","crits2","critsm2","hits2","hitsm2","shots2","shotsm2","jams2","submission_time");
  fputcsv($temp,$titles,",");
  while($row = $exportresults -> fetch_row()) {
-   fputcsv($temp, $row, ",");
-    }
+     fputcsv($temp, $row, ",");
+ }
 fclose($temp);
     header('Content-Type: application/csv');
     header('Content-Disposition: attachment; filename="combatDatabase.csv";');

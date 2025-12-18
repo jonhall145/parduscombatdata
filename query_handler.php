@@ -49,7 +49,7 @@ require_once 'config.php';
     // Get the validated column name from the whitelist
     $skillColumn = $validskills[$skill];
     
-    if (array_search($opponent, $validopponents,TRUE) && isset($validskills[$skill]) && is_numeric($tac_min) && is_numeric($tac_max) && is_numeric($ha_min) && is_numeric($ha_max) && is_numeric($man_min) && is_numeric($man_max) && is_numeric($weap_min) && is_numeric($weap_max) && is_numeric($eng_min) && is_numeric($eng_max))
+    if (in_array($opponent, $validopponents, true) && isset($validskills[$skill]) && is_numeric($tac_min) && is_numeric($tac_max) && is_numeric($ha_min) && is_numeric($ha_max) && is_numeric($man_min) && is_numeric($man_max) && is_numeric($weap_min) && is_numeric($weap_max) && is_numeric($eng_min) && is_numeric($eng_max))
     { //numbers are numeric, Opponent is acceptable, Skill is acceptable
         if ($opponent == "All opponents") {
             $defenderselect = "%";
@@ -58,9 +58,9 @@ require_once 'config.php';
             }
         
 
-        // Use validated skill column from whitelist - safe from SQL injection
-        $sqlcustomquery = $conn->prepare("
-        SELECT FLOOR(`" . $skillColumn . "`), SUM(`shots`), SUM(`hits`),SUM(`crits`),SUM(`d_shots`),SUM(`d_hits`),SUM(`d_crits`),`defender`
+        // Use CASE to avoid string interpolation of column names
+        $skillExpr = "CASE ? WHEN 'tactics' THEN tactics WHEN 'hit_accuracy' THEN hit_accuracy WHEN 'maneuver' THEN maneuver WHEN 'weaponry' THEN weaponry WHEN 'engineering' THEN engineering END";
+        $sql = "SELECT FLOOR({$skillExpr}) AS skill_bucket, SUM(`shots`) AS shots, SUM(`hits`) AS hits, SUM(`crits`) AS crits, SUM(`d_shots`) AS d_shots, SUM(`d_hits`) AS d_hits, SUM(`d_crits`) AS d_crits, `defender`
         FROM `combat_data`
         WHERE
         `tactics` BETWEEN ? AND ?
@@ -69,9 +69,10 @@ require_once 'config.php';
         AND `weaponry` BETWEEN ? AND ?
         AND `engineering` BETWEEN ? AND ?
         AND `defender` LIKE ?
-        GROUP BY FLOOR(`" . $skillColumn . "`), `defender`;");
-        
-        $sqlcustomquery->bind_param("dddddddddds",$tac_min,$tac_max,$ha_min,$ha_max,$man_min,$man_max,$weap_min,$weap_max,$eng_min,$eng_max,$defenderselect);
+        GROUP BY skill_bucket, `defender`;";
+
+        $sqlcustomquery = $conn->prepare($sql);
+        $sqlcustomquery->bind_param("sdddddddddds",$skill,$tac_min,$tac_max,$ha_min,$ha_max,$man_min,$man_max,$weap_min,$weap_max,$eng_min,$eng_max,$defenderselect);
         $sqlcustomquery->execute();
         $customresult = $sqlcustomquery->get_result();
         echo "<div id=\"htmlContent\">";
@@ -87,7 +88,7 @@ require_once 'config.php';
              
         }
         $customresult -> data_seek(0);
-        $skillkey = "FLOOR(`".$skillColumn."`)";
+        $skillkey = "skill_bucket";
         echo "</table></div>";
         //Now script to draw chart
         if ($opponent == "All opponents")
