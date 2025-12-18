@@ -508,7 +508,7 @@ function loadCombatSkills(combatStats) {
             var htmlFragment = parseXHTTPResponseText(response.responseText);
             for (var i = 0; i < 5 ; i++) {
                 try {
-                    skillsToSend[i] = parseFloat(htmlFragment.getElementById(skillTags[i]).outerHTML.match(/\>[0-9][^\<]*/g)[1].replace(/\>/,""));
+                    skillsToSend[i] = parseFloat(htmlFragment.getElementById(skillTags[i]).outerHTML.match(/\>[0-9][^\<]*/g)[1].replace(/\>/g,""));
                 } catch (error) {
                     skillsToSend[i] = parseFloat(htmlFragment.getElementById(skillTags[i]).textContent);
                 }
